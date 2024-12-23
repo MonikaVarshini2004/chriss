@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Name and Dare Assignment</title>
+    <style>
+        /* Background Animation */
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            margin: 0;
+            background: linear-gradient(135deg, #1e3c72, #2a5298, #e2eafc, #b8d8f5);
+            background-size: 400% 400%;
+            animation: gradientBG 10s ease infinite;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        h1 {
+            text-align: center;
+            color: #fff;
+            font-family: 'Pacifico', cursive;
+            font-size: 3em;
+            animation: fadeIn 2s ease-in-out;
+        }
+
+        form {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            animation: slideIn 1.5s ease;
+        }
+
+        label, input, textarea, button {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            font-size: 1.2em;
+        }
+
+        input, textarea {
+            padding: 8px;
+            border: 2px solid #a18cd1;
+            border-radius: 5px;
+            font-family: 'Arial', sans-serif;
+        }
+
+        button {
+            background-color: #6a11cb;
+            color: white;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 1.3em;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #2575fc;
+            transform: scale(1.05);
+        }
+
+        .gift-box-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .gift-box {
+            width: 150px;
+            height: 150px;
+            background-image: url("https://th.bing.com/th/id/OIP.8a9O1_Vq6wtL-jhw-ukPmwHaFf?rs=1&pid=ImgDetMain");
+            background-position: center;
+            border: 2px dashed #6a11cb;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #6a11cb;
+            font-weight: bold;
+            font-size: 1.2em;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .overlay.active {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .popup {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+            animation: popupIn 0.3s ease;
+        }
+
+        .popup h2 {
+            margin: 0;
+            font-size: 1.5em;
+            color: #6a11cb;
+        }
+
+        .popup p {
+            margin: 10px 0;
+            font-size: 1.2em;
+        }
+        
+        /* #playerForm{
+            background-image: url("mix_color_2.jpeg");
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+        } */
+
+        @keyframes popupIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <h1>Random Name and Dare Assignment</h1>
+
+    <form id="playerForm" onsubmit="assignNamesAndDares(event)">
+        <label for="numPlayers">Number of Players:</label>
+        <input type="number" id="numPlayers" name="numPlayers" min="3" required>
+
+        <div id="playerInputs"></div>
+
+        <label for="dares">Enter Fun Dares (one per line or leave empty for AI-generated dares):</label>
+        <textarea id="dares" rows="5" placeholder="Example: Sing a song, Dance, Do 10 pushups..."></textarea>
+
+        <button type="button" onclick="generateInputs()">Generate Fields</button>
+        <button type="submit">Submit</button>
+    </form>
+
+    <div class="gift-box-container" id="giftBoxContainer"></div>
+
+    <div class="overlay" id="overlay">
+        <div class="popup">
+            <h2 id="playerName"></h2>
+            <p id="assignedName"></p>
+            <p id="assignedDare"></p>
+            <button onclick="closePopup()">Close</button>
+        </div>
+    </div>
+
+    <script>
+        const aiDares = [
+            "Sing your favorite song in an opera voice!",
+            "Do your best impersonation of a celebrity.",
+            "Pretend you're a cat for the next 2 minutes.",
+            "Do 10 jumping jacks while saying 'I love dares!'.",
+            "Try to lick your elbow and say, 'I’m amazing!'.",
+            "Speak only in rhymes for the next 3 minutes.",
+            "Dance like no one's watching for 1 minute.",
+            "Try to juggle three random items from the room."
+        ];
+
+        function generateInputs() {
+            const numPlayers = document.getElementById('numPlayers').value;
+            const playerInputs = document.getElementById('playerInputs');
+            playerInputs.innerHTML = ""; // Clear previous inputs
+
+            for (let i = 1; i <= numPlayers; i++) {
+                playerInputs.innerHTML += `
+                    <label>Player ${i} Name:</label>
+                    <input type="text" name="playerName${i}" required>
+                `;
+            }
+
+            // Display AI-generated dares in the textarea
+            const dareTextarea = document.getElementById('dares');
+            dareTextarea.value = aiDares.join('\n');
+        }
+
+        function assignNamesAndDares(event) {
+            event.preventDefault();
+
+            const numPlayers = document.getElementById('numPlayers').value;
+            const playerInputs = document.querySelectorAll('#playerInputs input');
+            const dareText = document.getElementById('dares').value.trim();
+            const dares = dareText
+                ? dareText.split('\n').filter(dare => dare.trim() !== "")
+                : aiDares;
+
+            if (dares.length < numPlayers) {
+                alert("Please enter at least as many dares as there are players.");
+                return;
+            }
+
+            const players = Array.from(playerInputs).map(input => input.value);
+
+            const shuffledPlayers = [...players];
+            do {
+                shuffledPlayers.sort(() => Math.random() - 0.5);
+            } while (shuffledPlayers.some((name, index) => name === players[index]));
+
+            const shuffledDares = [...dares];
+            shuffledDares.sort(() => Math.random() - 0.5);
+
+            const assignments = players.map((player, index) => ({
+                name: player,
+                secret: shuffledPlayers[index],
+                dare: shuffledDares[index]
+            }));
+
+            const giftBoxContainer = document.getElementById('giftBoxContainer');
+            giftBoxContainer.innerHTML = "";
+
+            assignments.forEach(assignment => {
+                const giftBox = document.createElement('div');
+                giftBox.className = 'gift-box';
+                giftBox.textContent = assignment.name;
+
+                giftBox.addEventListener('click', () => {
+                    showPopup(assignment);
+                });
+
+                giftBoxContainer.appendChild(giftBox);
+            });
+        }
+
+        function showPopup(assignment) {
+            document.getElementById('playerName').textContent = assignment.name;
+            document.getElementById('assignedName').textContent = `Assigned Name: ${assignment.secret}`;
+            document.getElementById('assignedDare').textContent = `Dare: ${assignment.dare}`;
+
+            const overlay = document.getElementById('overlay');
+            overlay.classList.add('active');
+        }
+
+        function closePopup() {
+            const overlay = document.getElementById('overlay');
+            overlay.classList.remove('active');
+        }
+    </script>
+</body>
+</html>
